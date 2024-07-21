@@ -1,208 +1,153 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from datetime import datetime
 
-# Example data
-employees = pd.DataFrame({
-    'ID': range(1, 11),
-    'Name': ['Employee ' + str(i) for i in range(1, 11)],
-    'Role': ['Cleaner'] * 5 + ['Supervisor'] * 5,
-    'Contact': ['contact' + str(i) + '@example.com' for i in range(1, 11)],
-    'Status': ['Active'] * 10,
-    'Hire Date': [datetime(2023, 1, i + 1) for i in range(10)],
-    'Salary': [3000 + i * 100 for i in range(10)]
-})
+# Initialize inventory data
+inventory_data = [
+    {"Item Name": "Disinfectant Spray", "Category": "Disinfectant", "Quantity": 50, "Price": 5.99, "Supplier": "Supplier A", "Brand": "Brand X", "Expiry Date": "2025-01-01", "Storage Location": "Warehouse 1"},
+    {"Item Name": "Glass Cleaner", "Category": "Window Cleaning", "Quantity": 30, "Price": 3.49, "Supplier": "Supplier B", "Brand": "Brand Y", "Expiry Date": "2024-06-01", "Storage Location": "Warehouse 2"},
+    {"Item Name": "Floor Cleaner", "Category": "Floor Cleaning", "Quantity": 20, "Price": 7.99, "Supplier": "Supplier C", "Brand": "Brand Z", "Expiry Date": "2023-12-31", "Storage Location": "Warehouse 3"},
+    {"Item Name": "Hand Sanitizer", "Category": "Hand Cleaning", "Quantity": 100, "Price": 2.99, "Supplier": "Supplier D", "Brand": "Brand A", "Expiry Date": "2025-07-01", "Storage Location": "Warehouse 1"},
+    {"Item Name": "Mop", "Category": "Cleaning Tools", "Quantity": 40, "Price": 10.99, "Supplier": "Supplier E", "Brand": "Brand B", "Expiry Date": "N/A", "Storage Location": "Warehouse 2"},
+    {"Item Name": "Broom", "Category": "Cleaning Tools", "Quantity": 60, "Price": 6.49, "Supplier": "Supplier F", "Brand": "Brand C", "Expiry Date": "N/A", "Storage Location": "Warehouse 3"},
+    {"Item Name": "Paper Towels", "Category": "Paper Products", "Quantity": 200, "Price": 0.99, "Supplier": "Supplier G", "Brand": "Brand D", "Expiry Date": "2026-01-01", "Storage Location": "Warehouse 1"},
+    {"Item Name": "Trash Bags", "Category": "Waste Management", "Quantity": 100, "Price": 4.99, "Supplier": "Supplier H", "Brand": "Brand E", "Expiry Date": "N/A", "Storage Location": "Warehouse 2"},
+    {"Item Name": "Bleach", "Category": "Disinfectant", "Quantity": 80, "Price": 3.99, "Supplier": "Supplier I", "Brand": "Brand F", "Expiry Date": "2024-05-01", "Storage Location": "Warehouse 3"},
+    {"Item Name": "Scrub Brush", "Category": "Cleaning Tools", "Quantity": 50, "Price": 2.49, "Supplier": "Supplier J", "Brand": "Brand G", "Expiry Date": "N/A", "Storage Location": "Warehouse 1"}
+]
 
-locations = pd.DataFrame({
-    'ID': range(1, 11),
-    'Name': ['Location ' + str(i) for i in range(1, 11)],
-    'Address': ['Address ' + str(i) for i in range(1, 11)],
-    'Status': ['Operational'] * 10,
-    'Type': ['Office'] * 5 + ['Residential'] * 5,
-    'Square Footage': [1000 + i * 100 for i in range(10)]
-})
+# Convert the dictionary to a DataFrame
+data = pd.DataFrame(inventory_data)
 
-inventory = pd.DataFrame({
-    'ID': range(1, 11),
-    'Item': ['Item ' + str(i) for i in range(1, 11)],
-    'Quantity': [10] * 10,
-    'Location': ['Location ' + str(i % 10 + 1) for i in range(1, 11)],
-    'Category': ['Cleaning Supplies'] * 10,
-    'Last Updated': [datetime(2023, 1, i + 1) for i in range(10)],
-    'Cost': [5.0 + i for i in range(10)]
-})
+# Initialize restock history
+restock_history = []
 
-checklists = {
-    'Checklist ' + str(i): ['Task ' + str(j) for j in range(1, 11)] for i in range(1, 11)
-}
+# App title
+st.title('Cleaning Product Supply Inventory')
 
-# Streamlit App
-st.title('Cleaning Business Management App')
+# Display the data
+st.subheader('Inventory Overview')
+st.dataframe(data)
 
-# Sidebar for navigation
-st.sidebar.title('Navigation')
-page = st.sidebar.selectbox('Select a page:', ['Home', 'Employees', 'Locations', 'Inventory', 'Checklists'])
+# Filter by category
+categories = np.append(['All'], data['Category'].unique())
+selected_category = st.selectbox('Select a Category', categories)
+if selected_category != 'All':
+    filtered_data = data[data['Category'] == selected_category]
+else:
+    filtered_data = data
+st.subheader(f'Products in Category: {selected_category}')
+st.dataframe(filtered_data)
 
-# Home page
-if page == 'Home':
-    st.header('Welcome to the Cleaning Business Management App')
-    st.write('Use the sidebar to navigate through the app.')
-    st.write('This app helps you manage your cleaning business effectively, providing features for managing employees, locations, inventory, and cleaning checklists.')
-    st.subheader('Statistics')
-    st.metric('Total Employees', employees.shape[0])
-    st.metric('Total Locations', locations.shape[0])
-    st.metric('Total Inventory Items', inventory.shape[0])
-    st.metric('Total Checklists', len(checklists))
-    
-    st.subheader('Monthly Summary')
-    monthly_summary = pd.DataFrame({
-        'Month': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-        'Revenue': np.random.randint(10000, 20000, size=12),
-        'Expenses': np.random.randint(5000, 10000, size=12)
-    })
-    st.write(monthly_summary)
-    st.line_chart(monthly_summary.set_index('Month'))
+# Search by item name
+search_term = st.text_input('Search for a product')
+if search_term:
+    search_results = data[data['Item Name'].str.contains(search_term, case=False)]
+    st.subheader(f'Search Results for: {search_term}')
+    st.dataframe(search_results)
 
-# Employees page
-elif page == 'Employees':
-    st.header('Employees Management')
-    st.write('### Employee List')
-    st.write(employees)
+# Add new item
+st.sidebar.header('Add New Item')
+new_item_name = st.sidebar.text_input('Item Name')
+new_item_category = st.sidebar.selectbox('Category', data['Category'].unique())
+new_item_quantity = st.sidebar.number_input('Quantity', min_value=0)
+new_item_price = st.sidebar.number_input('Price', min_value=0.0, format="%.2f")
+new_item_supplier = st.sidebar.text_input('Supplier')
+new_item_brand = st.sidebar.text_input('Brand')
+new_item_expiry_date = st.sidebar.date_input('Expiry Date')
+new_item_storage_location = st.sidebar.text_input('Storage Location')
 
-    st.write('### Add New Employee')
-    with st.form('add_employee'):
-        name = st.text_input('Name')
-        role = st.selectbox('Role', ['Cleaner', 'Supervisor'])
-        contact = st.text_input('Contact')
-        status = st.selectbox('Status', ['Active', 'Inactive'])
-        hire_date = st.date_input('Hire Date')
-        salary = st.number_input('Salary', min_value=0)
-        submitted = st.form_submit_button('Add Employee')
-        if submitted:
-            new_id = employees['ID'].max() + 1
-            employees = employees.append({'ID': new_id, 'Name': name, 'Role': role, 'Contact': contact, 'Status': status, 'Hire Date': hire_date, 'Salary': salary}, ignore_index=True)
-            st.success('Employee added successfully!')
-            st.write(employees)
+if st.sidebar.button('Add Item'):
+    new_item = {
+        'Item Name': new_item_name,
+        'Category': new_item_category,
+        'Quantity': new_item_quantity,
+        'Price': new_item_price,
+        'Supplier': new_item_supplier,
+        'Brand': new_item_brand,
+        'Expiry Date': str(new_item_expiry_date),
+        'Storage Location': new_item_storage_location
+    }
+    data = data.append(new_item, ignore_index=True)
+    st.success('Item added successfully!')
+    st.experimental_rerun()
 
-    st.write('### Update Employee Status')
-    with st.form('update_employee_status'):
-        emp_id = st.number_input('Employee ID', min_value=1, max_value=int(employees['ID'].max()))
-        new_status = st.selectbox('New Status', ['Active', 'Inactive'])
-        new_salary = st.number_input('New Salary', min_value=0)
-        submitted = st.form_submit_button('Update Status and Salary')
-        if submitted:
-            employees.loc[employees['ID'] == emp_id, 'Status'] = new_status
-            employees.loc[employees['ID'] == emp_id, 'Salary'] = new_salary
-            st.success('Employee status and salary updated successfully!')
-            st.write(employees)
+# Edit and delete functionality
+st.sidebar.header('Edit or Delete Item')
+item_to_edit = st.sidebar.selectbox('Select Item to Edit/Delete', data['Item Name'].unique())
+selected_item = data[data['Item Name'] == item_to_edit].iloc[0]
 
-# Locations page
-elif page == 'Locations':
-    st.header('Locations Management')
-    st.write('### Locations List')
-    st.write(locations)
+edit_item_name = st.sidebar.text_input('Item Name', selected_item['Item Name'])
+edit_item_category = st.sidebar.selectbox('Category', data['Category'].unique(), index=list(data['Category'].unique()).index(selected_item['Category']))
+edit_item_quantity = st.sidebar.number_input('Quantity', min_value=0, value=selected_item['Quantity'])
+edit_item_price = st.sidebar.number_input('Price', min_value=0.0, format="%.2f", value=selected_item['Price'])
+edit_item_supplier = st.sidebar.text_input('Supplier', selected_item['Supplier'])
+edit_item_brand = st.sidebar.text_input('Brand', selected_item['Brand'])
+edit_item_expiry_date = st.sidebar.date_input('Expiry Date', pd.to_datetime(selected_item['Expiry Date']) if selected_item['Expiry Date'] != 'N/A' else None)
+edit_item_storage_location = st.sidebar.text_input('Storage Location', selected_item['Storage Location'])
 
-    st.write('### Add New Location')
-    with st.form('add_location'):
-        name = st.text_input('Location Name')
-        address = st.text_input('Address')
-        status = st.selectbox('Status', ['Operational', 'Closed'])
-        location_type = st.selectbox('Type', ['Office', 'Residential'])
-        square_footage = st.number_input('Square Footage', min_value=0)
-        submitted = st.form_submit_button('Add Location')
-        if submitted:
-            new_id = locations['ID'].max() + 1
-            locations = locations.append({'ID': new_id, 'Name': name, 'Address': address, 'Status': status, 'Type': location_type, 'Square Footage': square_footage}, ignore_index=True)
-            st.success('Location added successfully!')
-            st.write(locations)
+if st.sidebar.button('Update Item'):
+    data.loc[data['Item Name'] == item_to_edit, :] = [
+        edit_item_name, edit_item_category, edit_item_quantity, edit_item_price,
+        edit_item_supplier, edit_item_brand, str(edit_item_expiry_date), edit_item_storage_location
+    ]
+    st.success('Item updated successfully!')
+    st.experimental_rerun()
 
-    st.write('### Update Location Status')
-    with st.form('update_location_status'):
-        loc_id = st.number_input('Location ID', min_value=1, max_value=int(locations['ID'].max()))
-        new_status = st.selectbox('New Status', ['Operational', 'Closed'])
-        new_square_footage = st.number_input('New Square Footage', min_value=0)
-        submitted = st.form_submit_button('Update Status and Square Footage')
-        if submitted:
-            locations.loc[locations['ID'] == loc_id, 'Status'] = new_status
-            locations.loc[locations['ID'] == loc_id, 'Square Footage'] = new_square_footage
-            st.success('Location status and square footage updated successfully!')
-            st.write(locations)
+if st.sidebar.button('Delete Item'):
+    data = data[data['Item Name'] != item_to_edit]
+    st.success('Item deleted successfully!')
+    st.experimental_rerun()
 
-# Inventory page
-elif page == 'Inventory':
-    st.header('Inventory Management')
-    st.write('### Inventory List')
-    st.write(inventory)
+# Summary statistics
+st.subheader('Summary Statistics')
+st.write(data.describe())
 
-    st.write('### Add New Inventory Item')
-    with st.form('add_inventory'):
-        item = st.text_input('Item Name')
-        quantity = st.number_input('Quantity', min_value=1)
-        location = st.selectbox('Location', locations['Name'])
-        category = st.text_input('Category')
-        last_updated = st.date_input('Last Updated')
-        cost = st.number_input('Cost', min_value=0.0, format="%.2f")
-        submitted = st.form_submit_button('Add Inventory Item')
-        if submitted:
-            new_id = inventory['ID'].max() + 1
-            inventory = inventory.append({'ID': new_id, 'Item': item, 'Quantity': quantity, 'Location': location, 'Category': category, 'Last Updated': last_updated, 'Cost': cost}, ignore_index=True)
-            st.success('Inventory item added successfully!')
-            st.write(inventory)
+# Low stock warning
+low_stock_threshold = st.sidebar.number_input('Low Stock Threshold', min_value=0, value=10)
+low_stock_items = data[data['Quantity'] < low_stock_threshold]
+st.subheader(f'Items with Stock Below {low_stock_threshold}')
+st.dataframe(low_stock_items)
+for index, row in low_stock_items.iterrows():
+    st.warning(f"Low stock for {row['Item Name']} - only {row['Quantity']} left!")
 
-    st.write('### Update Inventory Quantity')
-    with st.form('update_inventory_quantity'):
-        inv_id = st.number_input('Inventory ID', min_value=1, max_value=int(inventory['ID'].max()))
-        new_quantity = st.number_input('New Quantity', min_value=1)
-        new_cost = st.number_input('New Cost', min_value=0.0, format="%.2f")
-        last_updated = st.date_input('Last Updated')
-        submitted = st.form_submit_button('Update Quantity and Cost')
-        if submitted:
-            inventory.loc[inventory['ID'] == inv_id, 'Quantity'] = new_quantity
-            inventory.loc[inventory['ID'] == inv_id, 'Cost'] = new_cost
-            inventory.loc[inventory['ID'] == inv_id, 'Last Updated'] = last_updated
-            st.success('Inventory quantity and cost updated successfully!')
-            st.write(inventory)
+# Restock history
+st.sidebar.header('Restock History')
+restock_item = st.sidebar.selectbox('Select Item to Restock', data['Item Name'].unique())
+restock_quantity = st.sidebar.number_input('Restock Quantity', min_value=0)
+if st.sidebar.button('Restock Item'):
+    data.loc[data['Item Name'] == restock_item, 'Quantity'] += restock_quantity
+    restock_history.append({"Item Name": restock_item, "Restock Quantity": restock_quantity, "Date": str(datetime.now())})
+    st.success('Item restocked successfully!')
+    st.experimental_rerun()
 
-# Checklists page
-elif page == 'Checklists':
-    st.header('Cleaning Checklists/Project Management')
-    
-    checklist_selection = st.selectbox('Select a checklist', list(checklists.keys()))
-    st.write('### Tasks for ' + checklist_selection)
-    st.write(checklists[checklist_selection])
+if restock_history:
+    st.subheader('Restock History')
+    st.dataframe(pd.DataFrame(restock_history))
 
-    st.write('### Add New Checklist')
-    with st.form('add_checklist'):
-        checklist_name = st.text_input('Checklist Name')
-        tasks = st.text_area('Tasks (separate by commas)').split(',')
-        assigned_employee = st.selectbox('Assign to Employee', employees['Name'])
-        due_date = st.date_input('Due Date')
-        submitted = st.form_submit_button('Add Checklist')
-        if submitted:
-            checklists[checklist_name] = tasks
-            st.success(f'Checklist "{checklist_name}" added successfully and assigned to {assigned_employee} with due date {due_date}!')
-            st.write(checklists)
+# Export to CSV
+st.sidebar.header('Export Data')
+if st.sidebar.button('Export to CSV'):
+    data.to_csv('inventory_data.csv', index=False)
+    st.success('Data exported to inventory_data.csv')
 
-    st.write('### Update Checklist')
-    with st.form('update_checklist'):
-        checklist_to_update = st.selectbox('Select a checklist to update', list(checklists.keys()))
-        updated_tasks = st.text_area('Updated Tasks (separate by commas)').split(',')
-        new_assigned_employee = st.selectbox('Reassign to Employee', employees['Name'])
-        new_due_date = st.date_input('New Due Date')
-        submitted = st.form_submit_button('Update Checklist')
-        if submitted:
-            checklists[checklist_to_update] = updated_tasks
-            st.success(f'Checklist "{checklist_to_update}" updated successfully and reassigned to {new_assigned_employee} with new due date {new_due_date}!')
-            st.write(checklists)
+# Visualization: Category Distribution
+st.subheader('Category Distribution')
+category_counts = data['Category'].value_counts()
+fig, ax = plt.subplots()
+category_counts.plot(kind='bar', ax=ax)
+ax.set_title('Number of Items per Category')
+ax.set_xlabel('Category')
+ax.set_ylabel('Count')
+st.pyplot(fig)
 
-st.sidebar.write('---')
-st.sidebar.header('Example Data')
-if st.sidebar.button('Show Employees'):
-    st.sidebar.write(employees)
-if st.sidebar.button('Show Locations'):
-    st.sidebar.write(locations)
-if st.sidebar.button('Show Inventory'):
-    st.sidebar.write(inventory)
-if st.sidebar.button('Show Checklists'):
-    st.sidebar.write(checklists)
+# Visualization: Stock Levels
+st.subheader('Stock Levels')
+fig, ax = plt.subplots()
+data.plot(kind='bar', x='Item Name', y='Quantity', ax=ax)
+ax.set_title('Stock Levels by Item')
+ax.set_xlabel('Item Name')
+ax.set_ylabel('Quantity')
+st.pyplot(fig)
