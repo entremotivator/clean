@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.express as px
 from datetime import datetime
 
 # Initialize inventory data
@@ -136,18 +136,10 @@ if st.sidebar.button('Export to CSV'):
 # Visualization: Category Distribution
 st.subheader('Category Distribution')
 category_counts = data['Category'].value_counts()
-fig, ax = plt.subplots()
-category_counts.plot(kind='bar', ax=ax)
-ax.set_title('Number of Items per Category')
-ax.set_xlabel('Category')
-ax.set_ylabel('Count')
-st.pyplot(fig)
+fig = px.bar(category_counts, x=category_counts.index, y=category_counts.values, labels={'x': 'Category', 'y': 'Count'}, title='Number of Items per Category')
+st.plotly_chart(fig)
 
 # Visualization: Stock Levels
 st.subheader('Stock Levels')
-fig, ax = plt.subplots()
-data.plot(kind='bar', x='Item Name', y='Quantity', ax=ax)
-ax.set_title('Stock Levels by Item')
-ax.set_xlabel('Item Name')
-ax.set_ylabel('Quantity')
-st.pyplot(fig)
+fig = px.bar(data, x='Item Name', y='Quantity', labels={'Quantity': 'Quantity', 'Item Name': 'Item Name'}, title='Stock Levels by Item')
+st.plotly_chart(fig)
